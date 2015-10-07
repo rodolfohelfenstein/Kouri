@@ -179,16 +179,8 @@ Prefab:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5062194, guid: 0859f970f83c0414994cb5ab8d5c2e87, type: 2}
-      propertyPath: m_GravityScale
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 5816240, guid: 0859f970f83c0414994cb5ab8d5c2e87, type: 2}
-      propertyPath: m_Material
-      value: 
-      objectReference: {fileID: 6200000, guid: 47ca2689707934fda865f9306a65eb46, type: 2}
-    - target: {fileID: 11402718, guid: 0859f970f83c0414994cb5ab8d5c2e87, type: 2}
-      propertyPath: jumpForce
-      value: 100
+      propertyPath: m_Constraints
+      value: 5
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 0859f970f83c0414994cb5ab8d5c2e87, type: 2}
