@@ -22,9 +22,7 @@ public class PlatformController : MonoBehaviour {
 
 	void FixedUpdate (){
 		transform.Translate (new Vector3 (-Time.fixedDeltaTime * Speed, 0, 0));
+//		transform.position -= new Vector3 (Time.fixedDeltaTime * Speed, 0, 0);
 	}
 
-	void Move () {
-
-	}
 }
