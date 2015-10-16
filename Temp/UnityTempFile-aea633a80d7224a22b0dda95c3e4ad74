@@ -25,6 +25,7 @@
 -define:UNITY_5_2_0
 -define:UNITY_5_2
 -define:UNITY_5
+-define:UNITY_ADS
 -define:ENABLE_NEW_BUGREPORTER
 -define:ENABLE_2D_PHYSICS
 -define:ENABLE_4_6_FEATURES

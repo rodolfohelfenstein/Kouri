@@ -107,7 +107,7 @@ public class PlayerController : MonoBehaviour {
 				Instantiate (explosionPrefab, transform.position, transform.rotation);
 				explosionPrefab.GetComponent<AudioSource> ().Play ();
 				Destroy (gameObject);
-
+				
 				GameObject.Find ("Game Manager").SendMessage ("SetGameState", GameManager.GameState.Over);
 			}
 

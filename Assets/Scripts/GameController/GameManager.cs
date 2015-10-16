@@ -85,6 +85,7 @@ public class GameManager : MonoBehaviour {
 					if(Advertisement.IsReady()){
 						Advertisement.Show();
 					}
+	
 					break;
 				}
 			}
@@ -138,7 +139,15 @@ public class GameManager : MonoBehaviour {
 				break;
 			}
 			case GameState.Over :{
-				
+				if(PlayerPrefs.GetInt("HighScore") < Score){
+					PlayerPrefs.SetInt("HighScore", Score);
+					PlayerPrefs.Save();
+					GameObject.Find("HighScore").GetComponent<Text>().text = "NEW HIGHSCORE: " + Score.ToString();
+				} else {
+				GameObject.Find("HighScore").GetComponent<Text>().text = "HIGHSCORE: " + PlayerPrefs.GetInt("HighScore").ToString();
+				}
+
+				GameObject.Find("FinishScore").GetComponent<Text>().text = "SCORE: " + Score.ToString();
 				Time.timeScale = 0.5f;
 				break;
 			}
