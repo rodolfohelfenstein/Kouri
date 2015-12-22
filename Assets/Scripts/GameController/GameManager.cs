@@ -2,9 +2,9 @@
 using System.Collections;
 using UnityEngine.UI;
 using UnityStandardAssets.ImageEffects;
-using UnityEngine.Advertisements;
 using System.Collections.Generic;
-
+using UnityEngine.Analytics;
+using UnityEngine.Advertisements;
 
 public class GameManager : MonoBehaviour {
 
@@ -31,8 +31,6 @@ public class GameManager : MonoBehaviour {
 	private int Score; 
 	private float interval = 0.01f; 
 	private float nextTime = 0;
-	private static int canChangeDayTime = 1;
-	private float dayModify = 0.001f;
 	private bool tapCheck;
 	private float lastTap;
 
@@ -44,24 +42,16 @@ public class GameManager : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 
-//		GameObject.Find("FPS").GetComponent<Text>().text = "FPS: " + (1.0f / Time.deltaTime).ToString();      
-
-//		Color color = GameObject.Find ("BeginMessage").GetComponent<Text> ().material.color;
-//		color.a = Mathf.PingPong (Time.time * 5.0f, 1.0f);
-//		GameObject.Find("BeginMessage").GetComponent<Text>().material.color = color;
-			
+		if (GetGameState() == GameState.Resume)
+			GameObject.Find("FPS").GetComponent<Text>().text = "FPS: " + (1.0f / Time.deltaTime).ToString();      
 
 		CalculateScore ();
 		TapCheck ();
 
-		if (Camera.main.GetComponent<ContrastStretch> ().limitMinimum >= 1 || Camera.main.GetComponent<ContrastStretch> ().limitMinimum <= 0) 
-			canChangeDayTime *= -canChangeDayTime;
-	
-		Camera.main.GetComponent<ContrastStretch> ().limitMinimum += (dayModify * canChangeDayTime);
-	
 	}
 
 	public void TapCheck () {
+
 
 		bool touchClicked = false;
 		for (int i = 0; i < Input.touches.Length; i++) {
@@ -74,18 +64,23 @@ public class GameManager : MonoBehaviour {
 				case GameState.Start : {
 					break;
 				}
-				case GameState.Resume :{
+				case GameState.Resume : {
 					break;
 				}
 				case GameState.Pause :{
 					break;
 				}
 				case GameState.Over :{	
-					Application.LoadLevel("MainGame");
+					this.StartCoroutine(this.CallGame());
 					if(Advertisement.IsReady()){
-						Advertisement.Show();
+
+						if (Random.Range(0,10) < 2)
+							Advertisement.Show();
 					}
-	
+					Analytics.CustomEvent("gameOver", new Dictionary<string, object>
+					                      {
+						{ "finishScore", Score }
+					});
 					break;
 				}
 			}
@@ -98,6 +93,7 @@ public class GameManager : MonoBehaviour {
 			switch (GetGameState()) {
 				case GameState.Start : {
 					this.SetGameState(GameState.Resume);
+					Player.SetActive(true);
 					break;
 				}
 				case GameState.Resume :{
@@ -136,6 +132,13 @@ public class GameManager : MonoBehaviour {
 			}
 			case GameState.Pause :{
 				Time.timeScale = 0.0f;
+				if (PlayerPrefs.GetInt ("Sound") == 0)
+					GameObject.Find ("Som").GetComponent<Toggle> ().isOn = true;
+				else {
+					GameObject.Find ("Som").GetComponent<Toggle> ().isOn = false;
+					PlayerPrefs.SetInt ("Sound", 1);
+					PlayerPrefs.Save();
+				}
 				break;
 			}
 			case GameState.Over :{
@@ -154,7 +157,7 @@ public class GameManager : MonoBehaviour {
 		}
 
 		PlatformContent.SendMessage ("SetCurrentState", CurrentGameState);
-		Player.SendMessage ("SetCurrentState", CurrentGameState);
+//		Player.SendMessage ("SetCurrentState", CurrentGameState);
 		BackgroundContent.BroadcastMessage ("SetCurrentState", CurrentGameState);
 
 
@@ -187,8 +190,41 @@ public class GameManager : MonoBehaviour {
 	}
 
 	public void OnMenu(){
+		this.StartCoroutine(this.CallMenu());
+		Time.timeScale = 1.0f;
+		BackgroundContent.BroadcastMessage ("SetCurrentState", GameState.Resume);
+	}
+
+	public void OnToggleSound() {
+		
+		if (GameObject.Find ("Som").GetComponent<Toggle> ().isOn) {
+			PlayerPrefs.SetInt ("Sound", 0);
+			PlayerPrefs.Save();
+			AudioListener.volume = 0;
+			
+		}else {
+			PlayerPrefs.SetInt ("Sound", 1);
+			PlayerPrefs.Save();
+			AudioListener.volume = 1;
+		}
 		
 	}
 
+	IEnumerator CallGame () {
+		float fadeTime = GetComponent<Fading> ().BeginFade (1);
+		yield return new WaitForSeconds (fadeTime);
+		Application.LoadLevel("MainGame");
+	}
+
+	IEnumerator CallMenu () {
+		float fadeTime = GetComponent<Fading> ().BeginFade (1);
+		yield return new WaitForSeconds (fadeTime);
+		Application.LoadLevel("MainMenu");
+	}
+
+
+	public void SetScore(){
+		this.Score += 100;
+	}
 
 }

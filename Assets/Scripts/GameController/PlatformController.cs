@@ -14,10 +14,8 @@ public class PlatformController : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		if (transform.parent.GetComponent<SpawnerController>().CurrentGameState == GameManager.GameState.Resume) {
 			if (transform.position.x + 2 - transform.parent.position.x < -30)
 				Destroy (gameObject);
-		}
 	}
 	
 	void SetSpeed (int pSpeed) {
@@ -29,9 +27,7 @@ public class PlatformController : MonoBehaviour {
 	}
 
 	void FixedUpdate (){
-		if (transform.parent.GetComponent<SpawnerController>().CurrentGameState == GameManager.GameState.Resume) {
 			transform.Translate (new Vector3 ((-Time.fixedDeltaTime * GravitySide) * Speed, 0, 0));
-		}
 	}
 
 

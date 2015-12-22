@@ -6,127 +6,79 @@ public class PlayerController : MonoBehaviour {
 
 	public GameManager.GameState CurrentGameState;
 
-	[HideInInspector] public int jumpCount = 2;
-	public float jumpForce = 500f;
-
 	public Transform groundCheck;
-	private bool grounded = false;
 	public Transform sideCheck;
-	private bool sideBlock = false;
+	private bool grounded;
+	private RaycastHit2D sideBlock;
 
 	public PhysicsMaterial2D normalMaterial;
 	public PhysicsMaterial2D iceMaterial;
 	public GameObject explosionPrefab;
+	public GameObject explosionPlatformPrefab;
 
-	private Rigidbody2D rb2d;
-	private Renderer renderer;
-
-	private bool InitAux = false;
-
-	private bool GameOver;
-	private bool tapping = false;
+	private Rigidbody2D rigidBody2D;
+	private Renderer renderer2D;
 
 
-	private Vector2 lastPosition;
+	private Vector3 beginPosition;
 
+	private int jumpCount;
 	// Use this for initialization
 	void Awake () 
 	{
-		rb2d = GetComponent<Rigidbody2D>();
-		renderer = GetComponent<Renderer> ();
-		GameOver = false;
-
-		lastPosition = new Vector2(transform.position.x,transform.position.y);
+		renderer2D = GetComponent<Renderer> ();
+		rigidBody2D = GetComponent<Rigidbody2D> ();
+		beginPosition = transform.position;
+		jumpCount = 1;
 	}
 	
 	// Update is called once per frame
 	void Update () 
 	{
-		if(CurrentGameState == GameManager.GameState.Resume) {
-//		if (GameManager.CheckState(GameManager.GameState.Resume)) {
-
-			grounded = Physics2D.Linecast (transform.position, groundCheck.position, 1 << LayerMask.NameToLayer ("Ground"));
-
-			sideBlock = Physics2D.Linecast (transform.position, sideCheck.position, 1 << LayerMask.NameToLayer ("Ground"));
-
-
-			if (sideBlock) {
-				GetComponent<CircleCollider2D> ().sharedMaterial = iceMaterial;
-
-			} else 
-				GetComponent<CircleCollider2D> ().sharedMaterial = normalMaterial;
-
-			if (grounded)
-				jumpCount = 2; 
-
-			bool touchClicked = false;
-			for (int i = 0; i < Input.touches.Length; i++) {
-				touchClicked = Input.touches [i].phase == TouchPhase.Began;
-			}
-
-			if ((Input.GetKeyDown (KeyCode.Space) || touchClicked)) {
-				if (jumpCount > 0) {
-					
-					GetComponent<AudioSource> ().Play ();
-					Vector3 vel = rb2d.velocity;
-					vel.y = 0;
-					rb2d.velocity = vel;
-					if (sideBlock)
-						rb2d.AddForce (new Vector2 (0f, jumpForce * 1.5f));
-					else 
-						rb2d.AddForce (new Vector2 (0f, jumpForce));
-					jumpCount--;
-				}
-			}
-
-
-			if (grounded && !sideBlock) 
-			if (transform.position.x < -5) {
-				rb2d.AddForce (new Vector2 (60f, 0f));
-			} else {
-				Vector3 vel = rb2d.velocity;
-				vel.x = 0;
-				rb2d.velocity = vel;
-			}
-			else {
-				Vector3 vel = rb2d.velocity;
-				vel.x = 0;
-				rb2d.velocity = vel;
-			}
+		if (!renderer2D.isVisible) {
+			Instantiate (explosionPrefab, transform.position, transform.rotation);
+			Instantiate (explosionPrefab, transform.position, transform.rotation);
+			explosionPrefab.GetComponent<AudioSource> ().Play ();
+			Destroy (gameObject);
+			GameObject.Find ("Game Manager").SendMessage ("SetGameState", GameManager.GameState.Over);
 		}
 	}
 
 
 	public void FixedUpdate () {
+	
+		grounded =  Physics2D.Raycast (groundCheck.position, new Vector2 (0, -1), 0.0f, 1 << LayerMask.NameToLayer ("Ground"));
+		sideBlock = Physics2D.Raycast (sideCheck.position, new Vector2 (1, 0), 0.1f, 1 << LayerMask.NameToLayer ("Ground"));
 
-		if (CurrentGameState == GameManager.GameState.Resume) {
-			if (renderer.isVisible) {
-				InitAux = true;
-			} else if (InitAux) {
+		if (grounded) {
+			jumpCount = 1;
+		}
+		if (sideBlock.collider != null) {
+			Vector2 pos = transform.position;
+			pos.x = sideCheck.transform.position.x - 2f;
+			transform.position = pos;
 
-				Instantiate (explosionPrefab, transform.position, transform.rotation);
-				explosionPrefab.GetComponent<AudioSource> ().Play ();
-				Destroy (gameObject);
-				
-				GameObject.Find ("Game Manager").SendMessage ("SetGameState", GameManager.GameState.Over);
-			}
+			Destroy(sideBlock.collider.gameObject);
+			Instantiate (explosionPlatformPrefab, transform.position, transform.rotation);
+		} 	
 
-			Vector2 direction = new Vector2 (1, 0);
-			RaycastHit2D hit = Physics2D.Raycast (sideCheck.position, direction, 0.0f);
-
-
-			if (hit.collider != null) {
-
-				Vector2 pos = transform.position;
-				pos.x = hit.collider.transform.position.x - 1.1f;
-				transform.position = pos;
-
-			}
+		if (transform.position.x < -5.0f && grounded) {
+			rigidBody2D.AddForceAtPosition(new Vector2(100,0), new Vector2(beginPosition.x, beginPosition.y));
 		}
 	}
 
 	public void SetCurrentState(GameManager.GameState pGameState){
 		this.CurrentGameState = pGameState;
 	}
+
+	public void Jump(){
+		if (jumpCount > 0) {
+			rigidBody2D.AddForce (new Vector2 (0f, 800f));
+			jumpCount--;
+		}
+	}
+	
+		
+
 
 }

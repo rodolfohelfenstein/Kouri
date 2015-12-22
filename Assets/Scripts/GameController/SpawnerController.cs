@@ -31,7 +31,6 @@ public class SpawnerController : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		if (CurrentGameState == GameManager.GameState.Resume) {
 			Transform lastChild = transform.GetChild (transform.childCount - 1);
 
 			int auxBeginPercent = 0;
@@ -52,26 +51,23 @@ public class SpawnerController : MonoBehaviour {
 
 
 			if (lastChild.position.x + 2 - transform.position.x < 0) {
-				Object NewObject = Instantiate (SpawnObjects [0], lastChild.position + new Vector3 (2 + randomType.Width, -lastChild.position.y - (Speed > 0 ? 4.5f : -4.5f) + randomType.Height, 0), transform.rotation);
+				GameObject NewObject = Instantiate (SpawnObjects [0], lastChild.position + new Vector3 (2 + randomType.Width, -lastChild.position.y - (Speed > 0 ? 4.5f : -4.5f) + randomType.Height, 0), transform.rotation) as GameObject;
+
+				if(Random.Range(0, 100) < 10 && CurrentGameState == GameManager.GameState.Resume)
+					NewObject.transform.GetChild(NewObject.transform.childCount - 1).gameObject.SetActive(true);
 
 				int randomGravityValue = Random.Range (0, 100);
 		
-				((GameObject)NewObject).transform.parent = transform;
-				((GameObject)NewObject).transform.SendMessage ("SetSpeed", Speed);
-
+				NewObject.transform.parent = transform;
+				NewObject.transform.SendMessage ("SetSpeed", Speed);
 			}
-
-		}
 	}
 
 
 	void FixedUpdate () {
-		if (CurrentGameState == GameManager.GameState.Resume) {
 			foreach (Transform child in transform) {
 				child.SendMessage ("SetSpeed", Speed);
 			}
-
-		}	
 	}
 
 
